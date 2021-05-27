@@ -1,0 +1,101 @@
+@import url(https://cdn.jsdelivr.net/npm/modern-normalize);
+
+html, body {
+  height: 100%;
+}
+
+body {
+  display: grid;
+  grid-template-areas: "main nav"
+                       "foot foot";
+  grid-template-columns: 1fr auto;
+  grid-template-rows: 1fr auto;
+}
+
+main {
+  grid-area: main;
+  overflow: auto;
+}
+
+nav {
+  grid-area: nav;
+  display: flex;
+  flex-flow: column nowrap;
+  gap: .5em;
+  padding: 14px 34px 14px 21px;
+}
+
+nav a {
+  line-height: 1.5;
+}
+
+footer {
+  grid-area: foot;
+}
+
+header, section, footer {
+  padding: 14px 21px;
+}
+
+section h2 {
+  margin-top: 0;
+  padding-top: 0.83em;
+}
+
+a {
+  color: inherit;
+}
+
+@property --offset {
+  syntax: '<length>';
+  inherits: false;
+  initial-value: 0;
+}
+
+a {
+  text-underline-offset: var(--offset, 0.2em);
+  text-decoration: underline 0.15em;
+  transition: --offset 400ms, text-decoration-color 400ms;
+}
+
+a:hover, a:focus {
+  --offset: 0.2em;
+  text-decoration-color: orange;
+}
+
+@supports not (background: paint(something)) {
+  a {
+    transition: text-underline-offset 400ms, text-decoration-color 400ms;
+  }
+
+  a:hover, a:focus {
+    text-underline-offset: 0.4em;
+    text-decoration-color: inherit;
+  }
+}
+
+#scripts-viewer-controls {
+  display: grid;
+  gap: .5em;
+}
+
+#scripts-viewer-pre {
+  font-size: .8em;
+}
+
+@media (max-width: 30em) {
+  body {
+    display: grid;
+    grid-template-areas: "nav"
+                         "main"
+                         "foot";
+    grid-template-columns: auto;
+    grid-template-rows: auto 1fr auto;
+  }
+  nav {
+    flex-flow: row wrap;
+  }
+  nav h3 {
+    display: none;
+  }
+}

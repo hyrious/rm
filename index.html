@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="color-scheme" content="light dark">
+  <title>RPG Maker Online Tools</title>
+  <meta name="viewport" content="width=device-width">
+  <link rel="stylesheet" type="text/css" href="./website/style.css">
+  <script type="module" src="./website/main.js"></script>
+</head>
+<body>
+  <nav id="navigation">
+    <h3>Nav.</h3>
+  </nav>
+  <main>
+    <section>
+      <h2 id="scripts-viewer">Scripts Viewer</h2>
+      <form id="scripts-viewer-controls">
+        <input type="file" accept=".rvdata2,.rvdata,.rxdata" id="scripts-viewer-input">
+        <select id="scripts-viewer-select" style="visibility: hidden;"></select>
+      </form>
+      <pre><code id="scripts-viewer-pre"></code></pre>
+    </section>
+  </main>
+  <footer>
+    <strong>License</strong>: MIT @ <a href="https://github.com/hyrious">hyrious</a>
+  </footer>
+  <script src="https://cdn.jsdelivr.net/npm/pako@2.0.3/dist/pako_inflate.min.js"></script>
+</body>
+</html>
