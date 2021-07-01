@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="zh-Hans-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="color-scheme" content="light dark">
+  <title>de Visu Stella</title>
+  <meta name="viewport" content="width=device-width">
+  <style>
+    @import url(https://cdn.jsdelivr.net/npm/sanitize.css@12.0.1/evergreen.css);
+    @import url(https://cdn.jsdelivr.net/npm/sanitize.css@12.0.1/forms.evergreen.css);
+    @media (prefers-color-scheme: dark) {
+      button, input, select, textarea {
+        border-color: #424242;
+      }
+    }
+    body {
+      padding: .5em;
+    }
+    input[data-error]::after {
+      display: block;
+      content: '我看不懂，但我大为震撼';
+      font-size: small;
+      padding-top: 0.25em;
+    }
+    address code {
+      font-style: normal;
+      font-weight: bold;
+    }
+    a {
+      color: inherit;
+    }
+  </style>
+  <script>
+    { var m = /Chrome\/(\d+)/.exec(navigator.userAgent)
+      if (!m || m[1] < 85) {
+        document.write('<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%)">This page requires chrome &ge; 85 to show properly.</div>')
+        window.stop()
+      }
+    }
+  </script>
+</head>
+<body>
+
+  <main>
+    <input id="i" type="file" multiple>
+    <strong>使用说明：<a target="_blank" href="http://www.yanfly.moe/wiki/VisuStella_MZ_Terms_of_Use_Article_6">查看官方规约</a></strong>
+    <i id="d"></i>
+    <address id="a">loading ...</address>
+  </main>
+
+  <pre id="o" style="white-space: pre-wrap; word-break: break-all;"></pre>
+
+  <script src="https://cdn.jsdelivr.net/npm/esbuild-wasm"></script>
+  <script>
+    let $ = e => document.querySelector(e)
+    let $$ = e => document.querySelectorAll(e)
+
+    let input = $('#i')
+    let output = $('#o')
+    let file;
+
+    (async () => {
+      output.textContent = 'loading esbuild ...'
+      await esbuild.initialize({ wasmURL: 'https://cdn.jsdelivr.net/npm/esbuild-wasm@0.12.14/esbuild.wasm' })
+      output.textContent = 'ready.'
+      $('#a').textContent = ''
+    })()
+
+    input.onchange = function input_onchange() {
+      for (let file of input.files) refresh(file);
+    }
+
+    let visumzRE = /^var VisuMZ = VisuMZ \|\| {};/m
+
+    async function refresh(file) {
+      $('#a').innerHTML = ''
+      let code = await file.text()
+
+      function next_frame() {
+        return new Promise(r => requestAnimationFrame(r))
+      }
+
+      async function times(n, f) {
+        while (n--) await f()
+      }
+
+      function fail() {
+        return input.dataset.error = ''
+      }
+
+      if (!visumzRE.test(code)) return fail();
+      delete input.dataset.error;
+
+      let m;
+      m = /^VisuMZ\.(\w+).version\s*=\s*([\d\.]+);/m.exec(code)
+      if (!m) return fail();
+      let [, name, version] = m
+
+      $('#a').innerHTML = `<code>${name}@${version}:</code> <span id="progress"></span>`
+
+      function update_progress(t) {
+        if ($('#progress')) $('#progress').textContent = t;
+      }
+
+      update_progress('working');
+
+      function extract_varnames(string) {
+        return /_0x[0-9a-f]+/ig.exec(string)
+      }
+
+      let to_del = []
+
+      let dict
+      {
+        m = /^(?:var|const|let)\s+_0x[0-9a-f]+=\[['"]/im.exec(code)
+        if (!m) return fail();
+        let s = m[0]
+        let last_char = s[s.length - 1]
+        let [dict_name] = extract_varnames(m)
+        let end = code.indexOf(last_char + '];', m.index) + 3
+        let begin = m.index
+        dict = {
+          code: code.slice(m.index, end),
+          begin, end
+        }
+        to_del.push([ 0, end ])
+      }
+      output.textContent = code
+      await next_frame()
+
+      let decoder, decoder_name
+      {
+        m = /function(?:\s+(_0x[0-9a-f]+))?\s*\(_0x[0-9a-f]+,_0x[0-9a-f]+\){_0x[0-9a-f]+=_0x[0-9a-f]+-0x[0-9a-f]+;(?:var|const|let)\s+_0x[0-9a-f]+=_0x[0-9a-f]+\[_0x[0-9a-f]+\];return _0x[0-9a-f]+;}/.exec(code.slice(dict.end))
+        if (!m) return fail();
+        let t = m[0], s = m[1], begin = m.index + dict.end
+        if (!s) {
+          let m2 = /(?:var|const|let)\s+(_0x[0-9a-f]+)=function\s*\(/.exec(code.slice(m.index + dict.end - 42))
+          if (!m2) return fail();
+          s = m2[1]
+          begin = m.index + dict.end - 42 + m2.index
+        }
+        decoder_name = s
+        to_del.push([ begin, m.index + dict.end + m[0].length ])
+
+        m = /\;\(function\(/.exec(code.slice(dict.end))
+        let i = dict.end + m.index, j = i + 2, k = 1
+        while (k) {
+          if (code[j] === '(') k++;
+          if (code[j] === ')') k--;
+          j++
+        }
+        to_del.push([ i, j ])
+        s = code.slice(i, j)
+
+        decoder = Function(`${dict.code}\nvar ${decoder_name}=${t};${s};return ${decoder_name}`)()
+      }
+
+      {
+        let result = "", k = 0
+        for (let [a, b] of to_del) {
+          result += code.slice(k, a)
+          k = b
+        }
+        result += code.slice(k)
+        code = result
+      }
+      output.textContent = code
+      await next_frame()
+
+      {
+        let queue = [decoder_name]
+        let visited = new Set()
+        while (queue.length) {
+          let s = queue.shift()
+          visited.add(s)
+          let re = new RegExp(String.raw`\b(?:var|const|let)\s+(_0x[0-9a-f]+)=${s}\b`, 'g')
+          for (let m of code.matchAll(re)) {
+            queue.push(m[1])
+          }
+        }
+
+        let map = new Map()
+        let re = new RegExp(String.raw`(?:${Array.from(visited).join('|')})\((0x[0-9a-f]+)\)`, 'g')
+        code = code.replaceAll(re, (_, $1) => JSON.stringify(map.has($1) ? map.get($1) : decoder(Number($1))))
+        output.textContent = code
+        await next_frame()
+
+        re = new RegExp(String.raw`\b(var|const|let)\s+(?:${Array.from(visited).join('|')})=(_0x[0-9a-f]+),`, 'g')
+        code = code.replaceAll(re, (_, $1) => $1 + ' ')
+        output.textContent = code
+        await next_frame()
+
+        re = new RegExp(String.raw`\b(?:var|const|let)\s+(?:${Array.from(visited).join('|')})=(_0x[0-9a-f]+);`, 'g')
+        code = code.replaceAll(re, (_, $1) => '')
+        output.textContent = code
+        await next_frame()
+      }
+
+      {
+        update_progress('make it look better')
+        let result = await esbuild.transform(code, { minifySyntax: true })
+        code = result.code
+        output.textContent = code
+        await next_frame()
+      }
+      update_progress('done.')
+
+      {
+        $('#d').textContent = '在新窗口中打开'
+        $('#d').onclick = () => {
+          window.open(URL.createObjectURL(new Blob([code], { type: 'text/javascript' })))
+        }
+      }
+    }
+  </script>
+</body>
+</html>
