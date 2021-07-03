@@ -62,6 +62,7 @@
     (async () => {
       output.textContent = 'loading esbuild ...'
       await esbuild.initialize({ wasmURL: 'https://cdn.jsdelivr.net/npm/esbuild-wasm@0.12.14/esbuild.wasm' })
+      await esbuild.transform('console.log("hello, world!")')
       output.textContent = 'ready.'
       $('#a').textContent = ''
     })()
@@ -125,6 +126,7 @@
         }
         to_del.push([ 0, end ])
       }
+      update_progress('working (dict)');
       output.textContent = code
       await next_frame()
 
@@ -132,17 +134,27 @@
       {
         m = /function(?:\s+(_0x[0-9a-f]+))?\s*\(_0x[0-9a-f]+,_0x[0-9a-f]+\){_0x[0-9a-f]+=_0x[0-9a-f]+-0x[0-9a-f]+;(?:var|const|let)\s+_0x[0-9a-f]+=_0x[0-9a-f]+\[_0x[0-9a-f]+\];return _0x[0-9a-f]+;}/.exec(code.slice(dict.end))
         if (!m) return fail();
-        let t = m[0], s = m[1], begin = m.index + dict.end
+        update_progress('working (decoder ..)');
+        let t = m[0], s = m[1],
+            begin = m.index + dict.end, end = m.index + dict.end + m[0].length
         if (!s) {
-          let m2 = /(?:var|const|let)\s+(_0x[0-9a-f]+)=function\s*\(/.exec(code.slice(m.index + dict.end - 42))
+          let m2 = /(?:var|const|let|return)\s+(_0x[0-9a-f]+)=function\s*\(/.exec(code.slice(m.index + dict.end - 42))
           if (!m2) return fail();
           s = m2[1]
           begin = m.index + dict.end - 42 + m2.index
+          if (m2[0].startsWith('return')) {
+            begin = code.lastIndexOf('function', begin)
+            end = code.indexOf('}', end) + 1
+          }
         }
         decoder_name = s
-        to_del.push([ begin, m.index + dict.end + m[0].length ])
+        to_del.push([ begin, end ])
 
         m = /\;\(function\(/.exec(code.slice(dict.end))
+        if (!m) {
+          m = /}\(function\(/.exec(code.slice(dict.end))
+          m.index++
+        }
         let i = dict.end + m.index, j = i + 2, k = 1
         while (k) {
           if (code[j] === '(') k++;
@@ -156,6 +168,7 @@
       }
 
       {
+        to_del.sort((a, b) => a[0] - b[0])
         let result = "", k = 0
         for (let [a, b] of to_del) {
           result += code.slice(k, a)
@@ -164,6 +177,7 @@
         result += code.slice(k)
         code = result
       }
+      update_progress('working (decoder)');
       output.textContent = code
       await next_frame()
 
@@ -195,10 +209,13 @@
         output.textContent = code
         await next_frame()
       }
+      update_progress('working (decoded)');
 
       {
-        update_progress('make it look better')
-        let result = await esbuild.transform(code, { minifySyntax: true })
+        update_progress('make it look better (may take long time)')
+        let result = await esbuild.transform(code,
+          { minifySyntax: true, charset: 'utf8' }
+        )
         code = result.code
         output.textContent = code
         await next_frame()
@@ -207,8 +224,10 @@
 
       {
         $('#d').textContent = '在新窗口中打开'
+        let url
         $('#d').onclick = () => {
-          window.open(URL.createObjectURL(new Blob([code], { type: 'text/javascript' })))
+          url ||= URL.createObjectURL(new Blob([code], { type: 'text/javascript' }))
+          window.open(url)
         }
       }
     }
