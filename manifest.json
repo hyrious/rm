@@ -1,0 +1,15 @@
+{
+  "name": "脚本编辑器",
+  "short_name": "F11",
+  "description": "网页版 RM 脚本编辑器",
+  "start_url": "./f11.html",
+  "display": "standalone",
+  "theme_color": "#e1ebf6",
+  "background_color": "#e1ebf6",
+  "icons": [{
+    "src": "icon.png",
+    "sizes": "300x300",
+    "type": "image/png",
+    "purpose": "any maskable"
+  }]
+}

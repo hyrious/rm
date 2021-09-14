@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="zh-Hans-CN">
+<head>
+  <meta charset="UTF-8">
+  <link rel="manifest" href="./manifest.json">
+  <link rel="apple-touch-icon" href="./icon.png">
+  <meta name="theme-color" content="#e1ebf6">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>脚本编辑器</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sanitize.css@12.0.1/evergreen.css">
+  <script>
+    if (location.protocol === 'https:' && 'serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js')
+      })
+    }
+  </script>
+  <style>
+    main {
+      background-color: #e1ebf6;
+      display: flex;
+      height: 100vh;
+      padding: 12px;
+      gap: 8px;
+    }
+    .left-side {
+      min-width: 200px;
+      display: flex;
+      flex-flow: column nowrap;
+      gap: 8px;
+    }
+    .app-title {
+      padding: 5px;
+      background: linear-gradient(#001f3f, #0074D9);
+    }
+    .app-title h1 {
+      margin: 0;
+      padding: 5px;
+      font-size: 16px;
+      color: #fff;
+      text-align: center;
+      text-shadow: 0 0 5px #333;
+    }
+    .app-title nav {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 2px;
+    }
+    .app-title nav .menu-item {
+      position: relative;
+    }
+    .app-title nav .menu-item > button {
+      color: #fff;
+      border: none;
+      background: transparent;
+    }
+    .app-title nav .menu-item > button:disabled {
+      color: #ccc;
+    }
+    .app-title nav .menu-item > button:enabled:hover {
+      outline: 2px dashed cyan;
+    }
+    .app-title nav .menu-item > button:enabled:active {
+      outline: 2px solid cyan;
+    }
+    .app-title nav .menu-item [role=menu] {
+      position: absolute;
+      left: 0;
+      top: 100%;
+      width: 100px;
+      display: flex;
+      flex-flow: column nowrap;
+      align-items: flex-start;
+    }
+    .script-list {
+      flex-grow: 1;
+      margin: 0;
+      padding: 0;
+      list-style-type: none;
+      background-color: #fff;
+      border: 1px solid #777;
+      border-radius: 2px;
+      font-family: monospace;
+    }
+    .script-list li {
+      padding: 2px 6px;
+    }
+    .script-list .active {
+      color: #fff;
+      background-color: #0074D9;
+    }
+    .entry-title {
+      display: block;
+      padding: 2px 6px;
+      font-family: monospace;
+    }
+    .editor {
+      flex-grow: 1;
+      display: block;
+      resize: none;
+      padding: 5px;
+      font-family: monospace;
+    }
+    .hidden {
+      display: none !important;
+    }
+  </style>
+</head>
+<body>
+
+
+<main>
+  <div class="left-side">
+
+    <div class="app-title">
+      <h1>脚本编辑器</h1>
+      <nav>
+        <div class="menu-item">
+          <button>文件</button>
+          <div role="menu" class="hidden">
+            <button>打开 <kbd>(O)</kbd></button>
+            <button>保存 <kbd>(S)</kbd></button>
+            <button>关闭 <kbd>(W)</kbd></button>
+          </div>
+        </div>
+        <div class="menu-item">
+          <button id="btn-install" disabled>安装</button>
+        </div>
+        <div class="menu-item">
+          <button>关于</button>
+        </div>
+      </nav>
+    </div>
+
+    <ul class="script-list">
+      <li>lorem</li>
+      <li class="active">ipsum</li>
+      <li>dolo</li>
+    </ul>
+
+    <input class="entry-title">
+
+  </div>
+
+  <textarea class="editor" id="editor"></textarea>
+</main>
+
+<script>
+  const $ = document.querySelector.bind(document)
+  let deferredPrompt
+  addEventListener('beforeinstallprompt', e => {
+    e.preventDefault()
+    deferredPrompt = e
+    $('#btn-install').disabled = false
+  })
+  $('#btn-install').addEventListener('click', () => {
+    deferredPrompt.prompt()
+  })
+</script>
+
+</body>
+</html>
