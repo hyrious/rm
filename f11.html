@@ -69,9 +69,31 @@
       left: 0;
       top: 100%;
       width: 100px;
-      display: flex;
       flex-flow: column nowrap;
-      align-items: flex-start;
+      align-items: stretch;
+      background-color: #fff;
+      box-shadow: 0 0 4px 1px rgba(0,0,0,.25);
+      border-radius: 4px;
+      display: none;
+    }
+    .app-title nav .menu-item [role=menu]:focus {
+      display: flex;
+    }
+    .app-title nav .menu-item [role=menu] > button {
+      display: inline-flex;
+      align-items: center;
+      border: none;
+      color: #000;
+      background-color: transparent;
+      padding: 4px 8px;
+      text-align: left;
+    }
+    .app-title nav .menu-item [role=menu] > button:hover {
+      background-color: rgba(0, 0, 0, .1);
+    }
+    .app-title nav .menu-item [role=menu] > button > kbd {
+      flex-grow: 1;
+      text-align: right;
     }
     .script-list {
       flex-grow: 1;
@@ -102,9 +124,6 @@
       padding: 5px;
       font-family: monospace;
     }
-    .hidden {
-      display: none !important;
-    }
   </style>
 </head>
 <body>
@@ -117,11 +136,11 @@
       <h1>脚本编辑器</h1>
       <nav>
         <div class="menu-item">
-          <button>文件</button>
-          <div role="menu" class="hidden">
-            <button>打开 <kbd>(O)</kbd></button>
-            <button>保存 <kbd>(S)</kbd></button>
-            <button>关闭 <kbd>(W)</kbd></button>
+          <button id="btn-file">文件</button>
+          <div id="btn-file-menu" role="menu" tabindex="-1">
+            <button role="menuitem" id="btn-file-open">打开 <kbd>(O)</kbd></button>
+            <button role="menuitem" id="btn-file-save">保存 <kbd>(S)</kbd></button>
+            <button role="menuitem" id="btn-file-close">关闭 <kbd>(W)</kbd></button>
           </div>
         </div>
         <div class="menu-item">
@@ -148,6 +167,7 @@
 
 <script>
   const $ = document.querySelector.bind(document)
+
   let deferredPrompt
   addEventListener('beforeinstallprompt', e => {
     e.preventDefault()
@@ -156,6 +176,14 @@
   })
   $('#btn-install').addEventListener('click', () => {
     deferredPrompt.prompt()
+  })
+
+  $('#btn-file').addEventListener('click', () => {
+    $('#btn-file-menu').focus()
+  })
+
+  $('#btn-file-open').addEventListener('click', () => {
+    
   })
 </script>
 

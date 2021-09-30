@@ -22,10 +22,21 @@
       </form>
       <pre><code id="scripts-viewer-pre"></code></pre>
     </section>
+    <section>
+      <h2>Script Editor</h2>
+      <p>Press <kbd>F11</kbd> (macOS please use <kbd>Shift+F11</kbd> because of conflicts).</p>
+    </section>
   </main>
   <footer>
     <strong>License</strong>: MIT @ <a href="https://github.com/hyrious">hyrious</a>
   </footer>
   <script src="https://cdn.jsdelivr.net/npm/pako@2.0.3/dist/pako_inflate.min.js"></script>
+  <script>
+    window.addEventListener('keydown', e => {
+      if (e.key.toUpperCase() === 'F11') {
+        location.assign('./f11.html');
+      }
+    });
+  </script>
 </body>
 </html>
