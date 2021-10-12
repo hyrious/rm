@@ -61,10 +61,15 @@
 
     (async () => {
       output.textContent = 'loading esbuild ...'
-      await esbuild.initialize({ wasmURL: 'https://cdn.jsdelivr.net/npm/esbuild-wasm@0.12.14/esbuild.wasm' })
-      await esbuild.transform('console.log("hello, world!")')
-      output.textContent = 'ready.'
-      $('#a').textContent = ''
+      try {
+        await esbuild.initialize({ wasmURL: 'https://cdn.jsdelivr.net/npm/esbuild-wasm@0.13.4/esbuild.wasm' })
+        await esbuild.transform('console.log("hello, world!")')
+        output.textContent = 'ready.'
+        $('#a').textContent = ''
+      } catch (e) {
+        console.error(e);
+        output.textContent = String(e);
+      }
     })()
 
     input.onchange = function input_onchange() {
