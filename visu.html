@@ -30,14 +30,6 @@
       color: inherit;
     }
   </style>
-  <script>
-    { var m = /Chrome\/(\d+)/.exec(navigator.userAgent)
-      if (!m || m[1] < 85) {
-        document.write('<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%)">This page requires chrome &ge; 85 to show properly.</div>')
-        window.stop()
-      }
-    }
-  </script>
 </head>
 <body>
 
@@ -62,9 +54,11 @@
     (async () => {
       output.textContent = 'loading esbuild ...'
       try {
-        await esbuild.initialize({ wasmURL: 'https://cdn.jsdelivr.net/npm/esbuild-wasm@0.13.4/esbuild.wasm' })
+        await esbuild.initialize({
+          wasmURL: 'https://cdn.jsdelivr.net/npm/esbuild-wasm@' + esbuild.version + '/esbuild.wasm'
+        })
         await esbuild.transform('console.log("hello, world!")')
-        output.textContent = 'ready.'
+        output.textContent = 'ready. esbuild ' + esbuild.version
         $('#a').textContent = ''
       } catch (e) {
         console.error(e);
